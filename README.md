@@ -1,57 +1,60 @@
 # Cluster Analysis on NBA Players
 
-Analisi multivariata esplorativa dei profili di gioco dei giocatori NBA della stagione 2025-26. Il progetto individua archetipi statistici a partire dai volumi di gioco normalizzati per 36 minuti.
+## In breve
 
-## Obiettivo
+**279 giocatori NBA di rotazione, 3 archetipi statistici, una domanda:** i ruoli tradizionali bastano davvero a descrivere come gioca un atleta?
 
-L'analisi raggruppa giocatori con caratteristiche statistiche simili, oltre la sola classificazione per ruolo. I cluster risultanti rappresentano profili o archetipi di gioco osservati nei dati.
-
-## Dati e campione
-
-I dati vengono scaricati dallo script dalla tabella dei totali NBA 2025-26 di [Basketball-Reference](https://www.basketball-reference.com/leagues/NBA_2026_totals.html). Dopo la pulizia, sono mantenuti i giocatori con almeno 1.000 minuti totali, così da concentrarsi sugli atleti di rotazione stabile.
-
-Le metriche usate comprendono tentativi da tre, da due e tiri liberi; rimbalzi offensivi e difensivi; assist, palle rubate, stoppate, palle perse e falli personali. Tutte vengono convertite in valori per 36 minuti. Punti e minuti vengono esclusi dalla matrice finale per ridurre l'effetto del tempo di impiego e della produzione complessiva sulle distanze tra giocatori.
-
-## Metodo
-
-1. Web scraping, pulizia dei record e gestione dei giocatori trasferiti tra squadre.
-2. Diagnostica di correlazioni, multicollinearità (VIF), distribuzioni e normalità (Shapiro-Wilk).
-3. Standardizzazione Z-score e Principal Component Analysis (PCA).
-4. Confronto di algoritmi gerarchici agglomerativi, DIANA e k-means.
-5. Valutazione interna con indice di Calinski-Harabasz.
-6. Profilazione dei centroidi tramite le medie delle statistiche per 36 minuti.
-7. Validazione con LDA e QDA in leave-one-out cross-validation (LOOCV).
+Questo progetto usa dati della stagione NBA 2025-26, statistiche per 36 minuti, PCA e clustering per individuare profili di gioco senza partire dalle etichette PG, SG, SF, PF e C.
 
 ## Risultati principali
 
-La soluzione selezionata dal flusso principale è una partizione in **3 cluster**: si parte da un clustering gerarchico Ward nello spazio delle prime cinque componenti principali e si usano i centroidi ottenuti per inizializzare k-means.
-
-Il codice confronta questa partizione con una soluzione alternativa a 2 cluster, ottenuta direttamente sulle 10 variabili standardizzate con DIANA e k-means. Il confronto finale impiega l'indice di Calinski-Harabasz sulla stessa matrice standardizzata, rendendo le due partizioni confrontabili. Per ogni cluster vengono stampate numerosità e medie per 36 minuti, utili all'interpretazione degli archetipi.
-
-LDA e QDA stimano infine quanto la partizione a 3 cluster sia riproducibile attraverso i punteggi PCA e le variabili originali standardizzate; il risultato è riportato come accuratezza LOOCV.
-
-> I valori numerici finali dipendono dalla versione corrente della tabella Basketball-Reference interrogata al momento dell'esecuzione.
-
-## Riproducibilità
-
-### Requisiti
-
-- R 4.x
-- Pacchetti: rvest, tidyverse, ggplot2, car, fpc, cluster, MASS
-
-### Esecuzione
-
-Eseguire source("cod_pul_modificato.R").
-
-Lo script scarica i dati, produce grafici diagnostici e stampa indici di valutazione, profili medi dei cluster e risultati della validazione discriminante.
-
-## Contenuto della repository
-
-| File | Descrizione |
+| Risultato | Valore |
 | --- | --- |
-| cod_pul_modificato.R | Script completo: acquisizione dati, pulizia, PCA, clustering e validazione LDA/QDA. |
+| Giocatori analizzati | 279 con almeno 1.000 minuti |
+| Archetipi identificati | 3 |
+| Varianza spiegata da PC1 + PC2 | 58,64% |
+| Soluzione scelta | PCA + Ward + k-means, K = 3 |
+| Calinski-Harabasz della soluzione scelta | 83,09 |
+| Accuratezza LDA in LOOCV | 94,62% |
 
-## Fonte dati
+La soluzione a 3 cluster ha ottenuto un indice Calinski-Harabasz superiore all'alternativa diretta a 2 cluster (83,09 contro 75,53), misurato sulle stesse 10 variabili standardizzate.
 
-- [Basketball-Reference — NBA 2025-26 Totals](https://www.basketball-reference.com/leagues/NBA_2026_totals.html)
+## I tre archetipi
 
+| Cluster | Profilo statistico | Esempi nel campione |
+| --- | --- | --- |
+| 1 — Creatori ad alto utilizzo | Più tentativi da due, tiri liberi, assist e palle perse: giocatori che organizzano e concentrano una quota rilevante dell'attacco. | Luka Dončić, Shai Gilgeous-Alexander, Stephen Curry, Nikola Jokić, Giannis Antetokounmpo |
+| 2 — Perimetro e gioco a basso volume interno | Più volume da tre rispetto ai tentativi al ferro, con minore presenza a rimbalzo e ai liberi. | Klay Thompson, Duncan Robinson |
+| 3 — Lunghi, rimbalzo e protezione del ferro | Forte impronta su rimbalzi offensivi e difensivi e stoppate; meno volume perimetrale. | Victor Wembanyama, Rudy Gobert, Chet Holmgren, Jarrett Allen |
+
+> Gli archetipi non sono giudizi di valore: descrivono similarità statistiche. Un giocatore può essere un'eccezione interessante all'interno del proprio gruppo.
+
+## Come leggere il progetto senza entrare nel codice
+
+- Il punto centrale non è predire le partite: è capire **quali giocatori producono in modo simile**.
+- Le statistiche sono normalizzate per 36 minuti, per confrontare atleti con minuti giocati diversi.
+- La PCA riduce le 10 metriche principali; il clustering raggruppa i profili vicini nello spazio statistico.
+- La validazione LDA/QDA verifica quanto la partizione sia riconoscibile dai dati: la migliore accuratezza cross-validata è 94,62%.
+
+## Dati e metodo
+
+I dati provengono dalla tabella dei totali NBA 2025-26 di [Basketball-Reference](https://www.basketball-reference.com/leagues/NBA_2026_totals.html). Sono inclusi giocatori con almeno 1.000 minuti.
+
+Le 10 metriche analizzate per 36 minuti sono: tentativi da tre e da due, tiri liberi, rimbalzi offensivi e difensivi, assist, palle rubate, stoppate, palle perse e falli personali.
+
+Il flusso dell'analisi è:
+
+1. Pulizia dei dati e normalizzazione per 36 minuti.
+2. Controllo di correlazioni, VIF e normalità.
+3. Standardizzazione e Principal Component Analysis.
+4. Confronto tra clustering gerarchico, DIANA e k-means.
+5. Selezione con indice di Calinski-Harabasz.
+6. Validazione della partizione tramite LDA/QDA in LOOCV.
+
+## Per riprodurre l'analisi
+
+Serve R 4.x con i pacchetti rvest, tidyverse, ggplot2, car, fpc, cluster e MASS. Esegui source("cod_pul_modificato.R").
+
+## Nota sui risultati
+
+I dati vengono letti online al momento dell'esecuzione; i valori e gli esempi possono quindi cambiare se la tabella sorgente viene aggiornata.
